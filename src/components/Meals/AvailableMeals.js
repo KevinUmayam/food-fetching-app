@@ -5,11 +5,16 @@ import { useEffect, useState } from 'react';
 
 
 const AvailableMeals = () => {
-  const [meals, setMeals] = useState([])
-
+  const [meals, setMeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
     const fetchmeals = async () => {
       const response = await fetch('https://food-fetching-db-default-rtdb.firebaseio.com/meals.json');
+
+      if (!response.ok) {
+        throw new Error('something went wrong!')
+      }
       const responseData = await response.json();
       const loadedMeals = [];
 
@@ -22,9 +27,29 @@ const AvailableMeals = () => {
         })
       }
       setMeals(loadedMeals)
+      setIsLoading(false)
     }
-    fetchmeals()
+    fetchmeals().then().catch((error) => {
+      setIsLoading(false)
+      setError(error.message)
+    })
+
   }, [])
+  if (isLoading) {
+    return (
+      <section className={classes.mealsLoading}>
+        <h1>is loading...</h1>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className={classes.errorMessage}>
+        <h1>{error}</h1>
+      </section>
+    )
+  }
   const mealsList = meals.map((meal) => (
     <MealItem
       key={meal.id}
@@ -36,7 +61,7 @@ const AvailableMeals = () => {
   ));
 
   return (
-    <section className={classes.meals}>
+    <section className={classes.error}>
       <Card>
         <ul>{mealsList}</ul>
       </Card>
